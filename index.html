@@ -1,1 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Color Block Puzzle</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #f0f0f0;
+    }
+    h1 { margin: 10px; }
+    #score { font-size: 1.2em; }
+    #game {
+      display: grid;
+      grid-template-columns: repeat(10, 30px);
+      grid-template-rows: repeat(10, 30px);
+      gap: 2px;
+      background: #222;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    .cell {
+      width: 30px;
+      height: 30px;
+      background: #333;
+      border-radius: 4px;
+    }
+    .filled {
+      transition: 0.2s ease-in-out;
+      box-shadow: inset 0 0 3px #000;
+    }
+    #pieces {
+      display: flex;
+      gap: 20px;
+    }
+    .piece {
+      display: grid;
+      grid-template-columns: repeat(5, 30px);
+      grid-template-rows: repeat(5, 30px);
+      gap: 2px;
+    }
+    .block {
+      width: 30px;
+      height: 30px;
+      border-radius: 4px;
+      cursor: grab;
+    }
+  </style>
+</head>
+<body>
+  <h1>Color Block Puzzle</h1>
+  <div id="score">Score: 0</div>
+  <div id="game"></div>
+  <div id="pieces"></div>
 
+  <script>
+    const gameSize = 10;
+    const board = [];
+    const game = document.getElementById('game');
+    const piecesDiv = document.getElementById('pieces');
+    const scoreDisplay = document.getElementById('score');
+    let score = 0;
+    let difficulty = 1;
+
+    const colors = ['#f94144', '#f3722c', '#f8961e', '#f9c74f', '#90be6d', '#43aa8b', '#577590'];
+
+    function createBoard() {
+      for (let r = 0; r < gameSize; r++) {
+        board[r] = [];
+        for (let c = 0; c < gameSize; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          game.appendChild(cell);
+          board[r][c] = { filled: false, element: cell };
+        }
+      }
+    }
+
+    function clearLines() {
+      let linesCleared = 0;
+
+      for (let r = 0; r < gameSize; r++) {
+        if (board[r].every(cell => cell.filled)) {
+          board[r].forEach(cell => {
+            cell.filled = false;
+            cell.element.className = 'cell';
+          });
+          linesCleared++;
+        }
+      }
+
+      for (let c = 0; c < gameSize; c++) {
+        let columnFilled = true;
+        for (let r = 0; r < gameSize; r++) {
+          if (!board[r][c].filled) {
+            columnFilled = false;
+            break;
+          }
+        }
+        if (columnFilled) {
+          for (let r = 0; r < gameSize; r++) {
+            board[r][c].filled = false;
+            board[r][c].element.className = 'cell';
+          }
+          linesCleared++;
+        }
+      }
+
+      if (linesCleared > 0) {
+        score += linesCleared * 10;
+        scoreDisplay.textContent = `Score: ${score}`;
+      }
+    }
+
+    function spawnPieces() {
+      piecesDiv.innerHTML = '';
+      for (let i = 0; i < 3; i++) {
+        const shape = generateShape();
+        const piece = document.createElement('div');
+        piece.className = 'piece';
+        shape.forEach((row, r) => {
+          row.forEach((block, c) => {
+            const div = document.createElement('div');
+            if (block) {
+              div.className = 'block filled';
+              div.style.background = colors[Math.floor(Math.random() * colors.length)];
+              div.dataset.block = '1';
+            } else {
+              div.style.opacity = '0';
+            }
+            piece.appendChild(div);
+          });
+        });
+        piece.onclick = () => placeShape(shape);
+        piecesDiv.appendChild(piece);
+      }
+    }
+
+    function generateShape() {
+      const shapes = [
+        [[1]],
+        [[1,1]],
+        [[1,1,1]],
+        [[1],[1]],
+        [[1],[1],[1]],
+        [[1,1],[1,0]],
+        [[0,1],[1,1]],
+        [[1,1],[1,1]]
+      ];
+      const maxIndex = Math.min(shapes.length, 3 + difficulty);
+      return shapes[Math.floor(Math.random() * maxIndex)];
+    }
+
+    function placeShape(shape) {
+      // Find first available spot (you can expand this into drag & drop later)
+      outer:
+      for (let r = 0; r <= gameSize - shape.length; r++) {
+        for (let c = 0; c <= gameSize - shape[0].length; c++) {
+          if (canPlaceShape(r, c, shape)) {
+            applyShape(r, c, shape);
+            clearLines();
+            spawnPieces();
+            return;
+          }
+        }
+      }
+      alert('No space! Game Over!');
+    }
+
+    function canPlaceShape(r, c, shape) {
+      for (let i = 0; i < shape.length; i++) {
+        for (let j = 0; j < shape[0].length; j++) {
+          if (shape[i][j]) {
+            if (board[r + i][c + j].filled) return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    function applyShape(r, c, shape) {
+      for (let i = 0; i < shape.length; i++) {
+        for (let j = 0; j < shape[0].length; j++) {
+          if (shape[i][j]) {
+            board[r + i][c + j].filled = true;
+            board[r + i][c + j].element.className = 'cell filled';
+            board[r + i][c + j].element.style.background = colors[Math.floor(Math.random() * colors.length)];
+          }
+        }
+      }
+    }
+
+    createBoard();
+    spawnPieces();
+
+    // Increase difficulty every minute
+    setInterval(() => {
+      difficulty++;
+    }, 60000);
+  </script>
+</body>
+</html>
