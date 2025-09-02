@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Samsung TV Remote HTML App</title>
+  <title>Samsung TV Remote HTML App (Updated)</title>
 </head>
 <body>
   <h2>Samsung TV Remote</h2>
@@ -20,19 +20,30 @@
 
     function connectTV() {
       const ip = document.getElementById('tvip').value;
-      // Replace the name parameter with your device name base64-encoded (e.g., 'HTML_REMOTE')
+      // Try wss first, fallback to ws if error
       const nameBase64 = btoa('HTML_REMOTE');
-      ws = new WebSocket('wss://' + ip + ':8002/api/v2/channels/samsung.remote.control?name=' + nameBase64);
+      let triedWs = false;
 
-      ws.onopen = function() {
-        document.getElementById('status').innerText = "Connected!";
-      };
-      ws.onerror = function(e) {
-        document.getElementById('status').innerText = "Error connecting!";
-      };
-      ws.onclose = function(e) {
-        document.getElementById('status').innerText = "Disconnected!";
-      };
+      function openWs(uri) {
+        ws = new WebSocket(uri);
+
+        ws.onopen = function() {
+          document.getElementById('status').innerText = "Connected via " + (uri.startsWith("wss") ? "wss" : "ws");
+        };
+        ws.onerror = function(e) {
+          if (!triedWs && uri.startsWith("wss")) {
+            triedWs = true;
+            // Fallback to insecure ws
+            openWs('ws://' + ip + ':8001/api/v2/channels/samsung.remote.control?name=' + nameBase64);
+          } else {
+            document.getElementById('status').innerText = "Connection failed! Check Device Connection settings on TV.";
+          }
+        };
+        ws.onclose = function(e) {
+          document.getElementById('status').innerText = "Disconnected! Try resetting Smart Hub & device permissions on TV.";
+        };
+      }
+      openWs('wss://' + ip + ':8002/api/v2/channels/samsung.remote.control?name=' + nameBase64);
     }
 
     function sendKey(key) {
