@@ -1,374 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Interactive Double‑Slit Experiment</title>
-  <style>
-    :root{
-      --bg:#0f1221; --panel:#141938; --panel2:#0c1028; --ink:#e8eaf6; --muted:#aab1d6; --accent:#7aa2ff; --accent2:#6ef3a5; --warn:#ffb86b;
-    }
-    html,body{height:100%;}
-    body{margin:0;font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--ink);background:radial-gradient(1200px 600px at 20% -20%,#202650,transparent),radial-gradient(900px 500px at 120% 10%,#1b2248,transparent),var(--bg);}    
-    .wrap{max-width:1100px;margin:24px auto;padding:16px;}
-    h1{font-weight:800;letter-spacing:.3px;margin:0 0 6px;font-size:28px}
-    .sub{color:var(--muted);margin-bottom:18px}
-    .grid{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
-    @media (max-width: 1000px){.grid{grid-template-columns:1fr;}}
-    .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid rgba(255,255,255,.06);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    .card h2{font-size:16px;margin:0 0 10px 0;color:#c9d1ff;text-transform:uppercase;letter-spacing:.12em}
-    .pad{padding:16px}
-    .controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .controls .row{grid-column:span 2}
-    .control{display:grid;grid-template-columns:120px 1fr 72px;gap:8px;align-items:center;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px}
-    .control label{font-size:13px;color:#c6c9ee}
-    .control input[type=range]{width:100%}
-    .control input[type=number]{width:100%;background:#0c1230;border:1px solid rgba(255,255,255,.08);border-radius:8px;color:var(--ink);padding:6px 8px}
-    .note{font-size:12px;color:var(--muted);margin-top:8px}
-    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-    button{background:linear-gradient(180deg,#2b3676,#202a66);border:1px solid rgba(255,255,255,.15);border-radius:12px;color:#fff;padding:8px 12px;font-weight:600;cursor:pointer}
-    button.ghost{background:transparent;border-color:rgba(255,255,255,.2)}
-    button.accent{background:linear-gradient(180deg,#2a7bff,#2059e6);}
-
-    .canv-wrap{display:grid;grid-template-rows:auto 1fr;gap:10px}
-    .row-flex{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-    canvas{background:#050816;border-radius:14px;border:1px solid rgba(255,255,255,.08)}
-    .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
-    .dot{width:12px;height:12px;border-radius:50%}
-    .eq{font-size:14px;color:#cbd3ff;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px}
-    details{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px}
-    summary{cursor:pointer;color:#c9d1ff;font-weight:700}
-    .small{font-size:12px;color:#cbd3ff}
-    .two-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media (max-width: 700px){.two-cols{grid-template-columns:1fr}}
-    .foot{color:var(--muted);font-size:12px;margin-top:14px}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.2);font-size:12px;color:#c9d1ff}
-  </style>
-  <!-- MathJax for equations -->
-  <script>
-    window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] }, svg: { fontCache: 'global' } };
-  </script>
-  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <title>Samsung TV Remote HTML App</title>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Interactive Double‑Slit Experiment</h1>
-    <div class="sub">Explore how wavelength, slit width, separation, and screen distance shape the interference pattern. Toggle between <span class="pill">Wave Intensity</span> and <span class="pill">Particle Build‑Up</span>.</div>
-
-    <div class="grid">
-      <!-- Controls -->
-      <div class="card pad" id="controlsCard">
-        <h2>Parameters</h2>
-        <div class="controls">
-          <div class="control"><label for="lambda">Wavelength (nm)</label><input type="range" id="lambda" min="380" max="800" step="1" value="550"><input type="number" id="lambdaNum" value="550"></div>
-          <div class="control"><label for="distance">Screen distance L (m)</label><input type="range" id="distance" min="0.2" max="5" step="0.01" value="1.5"><input type="number" id="distanceNum" value="1.5"></div>
-          <div class="control"><label for="dsep">Slit separation d (µm)</label><input type="range" id="dsep" min="10" max="500" step="1" value="120"><input type="number" id="dsepNum" value="120"></div>
-          <div class="control"><label for="awidth">Slit width a (µm)</label><input type="range" id="awidth" min="2" max="300" step="1" value="30"><input type="number" id="awidthNum" value="30"></div>
-          <div class="control"><label for="screenW">Screen half‑width (cm)</label><input type="range" id="screenW" min="3" max="30" step="0.5" value="10"><input type="number" id="screenWNum" value="10"></div>
-          <div class="control"><label for="gamma">Beam width (σ, cm)</label><input type="range" id="gamma" min="0.3" max="10" step="0.1" value="4"><input type="number" id="gammaNum" value="4"></div>
-          <div class="row note">Tip: Increase <b>a</b> (slit width) to see the single‑slit diffraction envelope squeeze the fringes; increase <b>d</b> (separation) to make fringes more closely spaced.</div>
-        </div>
-
-        <div class="btns">
-          <button class="accent" id="modeWave">Wave Intensity</button>
-          <button class="ghost" id="modeParticle">Particle Build‑Up</button>
-          <button class="ghost" id="clearParticles">Clear Particles</button>
-          <button class="ghost" id="exportPNG">Export Pattern PNG</button>
-          <button class="ghost" id="reset">Reset</button>
-        </div>
-
-        <div class="note">Current mode: <span id="modeLabel">Wave Intensity</span></div>
-      </div>
-
-      <!-- Canvases & readouts -->
-      <div class="canv-wrap">
-        <div class="card pad">
-          <h2>Screen Pattern</h2>
-          <div class="legend">
-            <div class="row-flex"><span class="dot" style="background:var(--accent)"></span>Intensity $I(x)$</div>
-            <div class="row-flex"><span class="dot" style="background:var(--warn)"></span>Single‑slit envelope</div>
-            <div class="row-flex"><span class="dot" style="background:var(--accent2)"></span>Particle hits (mode)</div>
-          </div>
-          <canvas id="pattern" width="1000" height="360" aria-label="Interference pattern"></canvas>
-          <div class="row-flex small"><div>Zero‑order (central) fringe at $x=0$</div><div>|</div><div id="fringeInfo">…</div></div>
-        </div>
-
-        <div class="two-cols">
-          <div class="card pad">
-            <h2>Slit Geometry (not to scale)</h2>
-            <canvas id="slits" width="490" height="240" aria-label="Slit geometry"></canvas>
-            <div class="small">Separation $d$ and slit width $a$ are drawn to scale relative to each other, not to $L$.</div>
-          </div>
-
-          <div class="card pad">
-            <h2>Physics</h2>
-            <div class="eq">
-              Total intensity on screen (Fraunhofer, small angles):<br/>
-              $$I(x)=I_0\,\cos^2\!\left(\frac{\pi d}{\lambda}\,\frac{x}{\sqrt{x^2+L^2}}\right)\,\left[\frac{\sin\!\left(\frac{\pi a}{\lambda}\,\frac{x}{\sqrt{x^2+L^2}}\right)}{\frac{\pi a}{\lambda}\,\frac{x}{\sqrt{x^2+L^2}}}\right]^2\,G(x)$$
-              where $\lambda$ is wavelength, $d$ separation, $a$ width, $L$ screen distance. $G(x)=\exp\!\big(-x^2/2\sigma^2\big)$ models a finite beam (optional).
-            </div>
-            <details>
-              <summary>Key predictions</summary>
-              <ul>
-                <li>Fringe spacing near center: $\Delta x\approx \dfrac{\lambda L}{d}$.</li>
-                <li>Single‑slit minima (envelope): $a\,\sin\theta = m\lambda$ (non‑zero integers).</li>
-                <li>If $a\to 0$ the envelope broadens; if $d\to 0$ fringes vanish.</li>
-              </ul>
-            </details>
-            <div class="eq small" id="readout">—</div>
-          </div>
-        </div>
-
-        <div class="foot">Built as a single HTML file: no build tools needed. Works on desktop & mobile. Use “Export PNG” to save the current pattern.</div>
-      </div>
-    </div>
-  </div>
+  <h2>Samsung TV Remote</h2>
+  <label for="tvip">TV IP Address:</label>
+  <input id="tvip" type="text" value="192.168.1.x">
+  <button onclick="connectTV()">Connect</button>
+  <div id="status"></div>
+  <br>
+  <button onclick="sendKey('KEY_POWER')">Power</button>
+  <button onclick="sendKey('KEY_VOLUP')">Volume +</button>
+  <button onclick="sendKey('KEY_VOLDOWN')">Volume -</button>
+  <button onclick="sendKey('KEY_ENTER')">OK</button>
 
   <script>
-    // ----- Helpers -----
-    const $ = sel => document.querySelector(sel);
-    const link = (range, number, fn) => {
-      const r = $(range), n = $(number);
-      const update = v => { r.value = v; n.value = v; fn(parseFloat(v)); };
-      r.addEventListener('input', e => update(e.target.value));
-      n.addEventListener('change', e => update(e.target.value));
-      return v => update(v);
-    };
-    const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+    let ws = null;
 
-    // ----- State -----
-    const state = {
-      lambda: 550e-9, // m
-      L: 1.5,         // m
-      d: 120e-6,      // m
-      a: 30e-6,       // m
-      halfWidth: 0.10,// m (screen half-width)
-      sigma: 0.04,    // m (beam width)
-      mode: 'wave',   // 'wave' | 'particle'
-      particles: [],
-      maxParticles: 4000,
-    };
+    function connectTV() {
+      const ip = document.getElementById('tvip').value;
+      // Replace the name parameter with your device name base64-encoded (e.g., 'HTML_REMOTE')
+      const nameBase64 = btoa('HTML_REMOTE');
+      ws = new WebSocket('wss://' + ip + ':8002/api/v2/channels/samsung.remote.control?name=' + nameBase64);
 
-    // Canvas
-    const pat = $('#pattern'); const pctx = pat.getContext('2d');
-    const slit = $('#slits'); const sctx = slit.getContext('2d');
-
-    // ----- Physics functions -----
-    function intensityAtX(x){
-      // exact small-angle replacement: sinθ = x/√(x^2 + L^2)
-      const sinT = x/Math.sqrt(x*x + state.L*state.L);
-      const k = Math.PI / state.lambda; // we use π/λ to match formulas
-      const alpha = k * state.d * sinT;   // for cosine term
-      const beta  = k * state.a * sinT;   // for envelope
-      const envelope = beta === 0 ? 1 : Math.pow(Math.sin(beta)/beta, 2);
-      const cos2 = Math.cos(alpha); // later squared
-      const G = Math.exp(-(x*x)/(2*state.sigma*state.sigma));
-      return (cos2*cos2) * envelope * G; // I0 factored to 1
+      ws.onopen = function() {
+        document.getElementById('status').innerText = "Connected!";
+      };
+      ws.onerror = function(e) {
+        document.getElementById('status').innerText = "Error connecting!";
+      };
+      ws.onclose = function(e) {
+        document.getElementById('status').innerText = "Disconnected!";
+      };
     }
 
-    function fringeSpacing(){
-      return state.lambda * state.L / state.d; // near center
-    }
-
-    function firstEnvelopeZero(){
-      // a sinθ = λ -> x = L * tanθ ≈ L * sinθ for small θ
-      const sinT = state.lambda / state.a; // m
-      return state.L * sinT / Math.sqrt(1 - sinT*sinT);
-    }
-
-    // ----- Drawing -----
-    function drawPattern(){
-      const W = pat.width, H = pat.height;
-      pctx.clearRect(0,0,W,H);
-
-      // axes
-      pctx.fillStyle = '#0a0f28';
-      pctx.fillRect(0,0,W,H);
-
-      // map x ∈ [−halfWidth, +halfWidth] → X ∈ [0,W]
-      const hw = state.halfWidth;
-      const toX = x => (x + hw) / (2*hw) * W;
-      const tox = X => (X/W)*2*hw - hw;
-
-      // sample intensity
-      const samples = 2000; let maxI = 0;
-      const arr = new Float32Array(samples);
-      for(let i=0;i<samples;i++){
-        const x = -hw + (2*hw)*(i/(samples-1));
-        const I = intensityAtX(x);
-        arr[i] = I; if(I>maxI) maxI = I;
+    function sendKey(key) {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        alert("Please connect first!");
+        return;
       }
-
-      // plot envelope (using only single-slit part * G(x))
-      pctx.beginPath();
-      for(let i=0;i<samples;i++){
-        const x = -hw + (2*hw)*(i/(samples-1));
-        // envelope only: set cos^2 to 1
-        const sinT = x/Math.sqrt(x*x + state.L*state.L);
-        const k = Math.PI/state.lambda;
-        const beta = k * state.a * sinT;
-        const env = (beta===0?1:Math.pow(Math.sin(beta)/beta,2)) * Math.exp(-(x*x)/(2*state.sigma*state.sigma));
-        const y = H - (env/maxI) * (H-30) - 10;
-        const X = toX(x);
-        if(i===0) pctx.moveTo(X,y); else pctx.lineTo(X,y);
-      }
-      pctx.strokeStyle = '#ffb86b'; pctx.lineWidth = 2; pctx.stroke();
-
-      // plot intensity curve
-      pctx.beginPath();
-      for(let i=0;i<samples;i++){
-        const x = -hw + (2*hw)*(i/(samples-1));
-        const y = H - (arr[i]/maxI) * (H-30) - 10;
-        const X = toX(x);
-        if(i===0) pctx.moveTo(X,y); else pctx.lineTo(X,y);
-      }
-      pctx.strokeStyle = '#7aa2ff'; pctx.lineWidth = 3; pctx.stroke();
-
-      // midline
-      pctx.strokeStyle = 'rgba(255,255,255,.15)'; pctx.lineWidth = 1;
-      pctx.beginPath(); pctx.moveTo(W/2,0); pctx.lineTo(W/2,H); pctx.stroke();
-
-      // X scale ticks
-      pctx.fillStyle = 'rgba(200,210,255,.7)'; pctx.font = '12px system-ui';
-      const ticks = 10;
-      for(let i=0;i<=ticks;i++){
-        const x = -hw + (2*hw)*(i/ticks);
-        const X = toX(x);
-        pctx.fillRect(X, H-18, 1, 8);
-        pctx.fillText((x*100).toFixed(1)+' cm', X-18, H-2);
-      }
-
-      // particles (if any)
-      if(state.particles.length){
-        pctx.fillStyle = '#6ef3a5';
-        for(const pt of state.particles){
-          const X = toX(pt.x), Y = H - pt.yNorm*(H-30) - 10; // yNorm in [0,1]
-          pctx.fillRect(X-1, Y-1, 2, 2);
+      const msg = {
+        method: "ms.remote.control",
+        params: {
+          Cmd: "Click",
+          DataOfCmd: key,
+          Option: "false",
+          TypeOfRemote: "SendRemoteKey"
         }
-      }
-
-      // Info
-      const dx = fringeSpacing();
-      const firstZero = firstEnvelopeZero();
-      $('#fringeInfo').textContent = `Central fringe spacing Δx ≈ ${(dx*1000).toFixed(2)} mm; first envelope zero at x ≈ ${(firstZero*100).toFixed(1)} cm`;
-
-      $('#readout').innerHTML = `
-        $\\lambda = ${(state.lambda*1e9).toFixed(0)}\,\text{nm}$, 
-        $L=${state.L.toFixed(2)}\,\text{m}$, 
-        $d=${(state.d*1e6).toFixed(0)}\,\mu\text{m}$, 
-        $a=${(state.a*1e6).toFixed(0)}\,\mu\text{m}$, 
-        screen half‑width $=${(state.halfWidth*100).toFixed(1)}\,\text{cm}$, 
-        beam $\sigma=${(state.sigma*100).toFixed(1)}\,\text{cm}$.`;
-      if(window.MathJax) MathJax.typesetPromise();
+      };
+      ws.send(JSON.stringify(msg));
     }
-
-    function drawSlits(){
-      const W = slit.width, H = slit.height;
-      sctx.clearRect(0,0,W,H);
-      // background
-      const g = sctx.createLinearGradient(0,0,0,H);
-      g.addColorStop(0,'#0b0f28'); g.addColorStop(1,'#0a0d22');
-      sctx.fillStyle = g; sctx.fillRect(0,0,W,H);
-
-      // scale a and d into pixels
-      const maxVisual = Math.max(state.d, state.a*3);
-      const scale = Math.min(160 / maxVisual, 2e6); // pixels per meter, keep reasonable
-      const slitW = state.a * scale; // px
-      const sep = state.d * scale;   // px
-
-      const cx = W*0.22; const cy = H/2; const wallW = 90; const wallH = H*0.8;
-      // wall
-      sctx.fillStyle = '#20264f'; sctx.fillRect(cx-wallW/2, cy-wallH/2, wallW, wallH);
-      // two slits
-      const slitH = wallH*0.4; const slitR = 8;
-      sctx.fillStyle = '#cfe5ff';
-      const y1 = cy - sep/2 - slitW/2, y2 = cy + sep/2 - slitW/2;
-      // draw as rounded rects oriented along y → here width=wall thickness, height=slit width in y
-      function rrect(x,y,w,h,r){ sctx.beginPath(); sctx.moveTo(x,y+r); sctx.arcTo(x,y,x+r,y,r); sctx.lineTo(x+w-r,y); sctx.arcTo(x+w,y,x+w,y+r,r); sctx.lineTo(x+w,y+h-r); sctx.arcTo(x+w,y+h,x+w-r,y+h,r); sctx.lineTo(x+r,y+h); sctx.arcTo(x,y+h,x,y+h-r,r); sctx.closePath(); sctx.fill(); }
-      rrect(cx-8, y1, 16, slitW, Math.min(6, slitW/2));
-      rrect(cx-8, y2, 16, slitW, Math.min(6, slitW/2));
-
-      // labels
-      sctx.fillStyle = 'rgba(200,210,255,.8)'; sctx.font = '13px system-ui'; sctx.fillText('Barrier', cx-24, cy-wallH/2-6);
-      sctx.strokeStyle = 'rgba(255,255,255,.22)'; sctx.strokeRect(cx-wallW/2, cy-wallH/2, wallW, wallH);
-
-      // show d and a rulers
-      sctx.strokeStyle = '#7aa2ff'; sctx.lineWidth = 2;
-      // d (center to center): since we drew identical slits, center separation is sep
-      sctx.beginPath(); sctx.moveTo(cx+22, cy-sep/2); sctx.lineTo(cx+22, cy+sep/2); sctx.stroke();
-      sctx.beginPath(); sctx.moveTo(cx+18, cy-sep/2); sctx.lineTo(cx+26, cy-sep/2); sctx.moveTo(cx+18, cy+sep/2); sctx.lineTo(cx+26, cy+sep/2); sctx.stroke();
-      sctx.fillText('d', cx+30, cy+4);
-
-      // a (slit width)
-      sctx.strokeStyle = '#ffb86b';
-      sctx.beginPath(); sctx.moveTo(cx-14, y1); sctx.lineTo(cx-14, y1+slitW); sctx.stroke();
-      sctx.beginPath(); sctx.moveTo(cx-18, y1); sctx.lineTo(cx-10, y1); sctx.moveTo(cx-18, y1+slitW); sctx.lineTo(cx-10, y1+slitW); sctx.stroke();
-      sctx.fillText('a', cx-32, y1+slitW/2+4);
-
-      // screen on right with L
-      const scrX = W*0.90; const scrW = 14; const scrH = H*0.86; const scrY = (H-scrH)/2;
-      sctx.fillStyle = '#0b122f'; sctx.fillRect(scrX, scrY, scrW, scrH); sctx.strokeStyle = 'rgba(255,255,255,.25)'; sctx.strokeRect(scrX, scrY, scrW, scrH);
-      sctx.fillStyle = 'rgba(200,210,255,.8)'; sctx.fillText('Screen', scrX-8, scrY-8);
-
-      // L arrow
-      sctx.strokeStyle = 'rgba(255,255,255,.3)';
-      sctx.beginPath(); sctx.moveTo(cx+40, cy); sctx.lineTo(scrX-8, cy); sctx.stroke();
-      sctx.beginPath(); sctx.moveTo(cx+40, cy); sctx.lineTo(cx+52, cy-6); sctx.lineTo(cx+52, cy+6); sctx.closePath(); sctx.fillStyle='rgba(255,255,255,.3)'; sctx.fill();
-      sctx.fillStyle='rgba(200,210,255,.8)'; sctx.fillText('L', (cx+scrX)/2, cy-6);
-    }
-
-    // ----- Particle simulation -----
-    let animId = null;
-    function sampleX(){
-      // Rejection sampling on [-halfWidth, +halfWidth]
-      let tries = 0;
-      while(true){
-        const x = (Math.random()*2-1) * state.halfWidth;
-        const y = Math.random();
-        const I = intensityAtX(x);
-        if(I>0 && y < I) return x;
-        if(++tries>10000) return 0; // safety
-      }
-    }
-    function stepParticles(){
-      if(state.mode !== 'particle') return;
-      // Add several per frame for speed
-      const batch = 80;
-      const H = pat.height; const hw = state.halfWidth; const toX = x => (x + hw) / (2*hw) * pat.width;
-      for(let i=0;i<batch;i++){
-        const x = sampleX();
-        const yNorm = Math.random();
-        state.particles.push({x, yNorm});
-        if(state.particles.length > state.maxParticles) state.particles.shift();
-      }
-      drawPattern();
-      animId = requestAnimationFrame(stepParticles);
-    }
-
-    // ----- Events & bindings -----
-    const setLambda = link('#lambda','#lambdaNum', v=>{ state.lambda = v*1e-9; drawPattern(); });
-    const setL = link('#distance','#distanceNum', v=>{ state.L = v; drawPattern(); drawSlits(); });
-    const setD = link('#dsep','#dsepNum', v=>{ state.d = v*1e-6; drawPattern(); drawSlits(); });
-    const setA = link('#awidth','#awidthNum', v=>{ state.a = v*1e-6; drawPattern(); drawSlits(); });
-    const setHW = link('#screenW','#screenWNum', v=>{ state.halfWidth = v/100; drawPattern(); });
-    const setSigma = link('#gamma','#gammaNum', v=>{ state.sigma = v/100; drawPattern(); });
-
-    $('#modeWave').addEventListener('click', ()=>{ state.mode='wave'; $('#modeWave').classList.add('accent'); $('#modeParticle').classList.remove('accent'); $('#modeLabel').textContent='Wave Intensity'; cancelAnimationFrame(animId); drawPattern(); });
-    $('#modeParticle').addEventListener('click', ()=>{ state.mode='particle'; $('#modeParticle').classList.add('accent'); $('#modeWave').classList.remove('accent'); $('#modeLabel').textContent='Particle Build‑Up'; cancelAnimationFrame(animId); stepParticles(); });
-    $('#clearParticles').addEventListener('click', ()=>{ state.particles=[]; drawPattern(); });
-    $('#reset').addEventListener('click', ()=>{
-      setLambda(550); setL(1.5); setD(120); setA(30); setHW(10); setSigma(4);
-      state.particles=[]; state.mode='wave'; $('#modeWave').classList.add('accent'); $('#modeParticle').classList.remove('accent'); $('#modeLabel').textContent='Wave Intensity';
-      cancelAnimationFrame(animId); drawSlits(); drawPattern();
-    });
-    $('#exportPNG').addEventListener('click', ()=>{
-      const url = pat.toDataURL('image/png');
-      const a = document.createElement('a'); a.href=url; a.download='double-slit-pattern.png'; a.click();
-    });
-
-    // init
-    drawSlits(); drawPattern();
-    window.addEventListener('resize', ()=>{ /* canvases fixed-size; keep as is for crispness */ });
   </script>
 </body>
 </html>
